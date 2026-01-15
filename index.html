@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Calculateur de moyenne pour étudiants universitaires algériens - Calculez vos notes de semestre et d'année" />
+  <meta name="keywords" content="calculateur moyenne, université algérienne, notes, semestre, TD, TP" />
+  <title>M3DL - Calculateur de Moyenne Universitaire</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <canvas id="bg-canvas"></canvas>
+
+  <div id="app">
+    <header class="header">
+      <div class="container">
+        <h1 class="logo">
+          <span class="logo-icon">📊</span>
+          M3DL
+        </h1>
+        <p class="tagline">Calculateur de Moyenne Universitaire</p>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="container">
+        <!-- Year and Semester Selector -->
+        <section class="selector-section glass-card">
+          <div class="year-selector">
+            <label for="year-select">Année d'études</label>
+            <select id="year-select" class="select-input">
+              <option value="1">1ère Année</option>
+              <option value="2">2ème Année</option>
+              <option value="3">3ème Année</option>
+              <option value="4">4ème Année</option>
+              <option value="5">5ème Année</option>
+            </select>
+          </div>
+          <div class="semester-selector">
+            <label>Semestre</label>
+            <div class="semester-buttons">
+              <button class="btn-semester active" data-semester="1">S1</button>
+              <button class="btn-semester" data-semester="2">S2</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Subject Input Section -->
+        <section class="subject-section glass-card">
+          <h2>Ajouter une matière</h2>
+          <form id="subject-form" class="subject-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="subject-name">Nom de la matière</label>
+                <input type="text" id="subject-name" class="input-field" placeholder="Ex: Algorithmique" required />
+              </div>
+              <div class="form-group">
+                <label for="subject-coef">Coefficient</label>
+                <input type="number" id="subject-coef" class="input-field" min="1" max="10" step="1" value="1"
+                  required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Type de travaux pratiques</label>
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input type="radio" name="tp-type" value="both" checked />
+                    <span>TD + TP</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="tp-type" value="td" />
+                    <span>TD seulement</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="tp-type" value="tp" />
+                    <span>TP seulement</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="exam-grade">Note Examen (60%)</label>
+                <input type="number" id="exam-grade" class="input-field" min="0" max="20" step="0.25"
+                  placeholder="0-20" />
+              </div>
+              <div class="form-group" id="td-group">
+                <label for="td-grade">Note TD (20%)</label>
+                <input type="number" id="td-grade" class="input-field" min="0" max="20" step="0.25"
+                  placeholder="0-20" />
+              </div>
+              <div class="form-group" id="tp-group">
+                <label for="tp-grade">Note TP (20%)</label>
+                <input type="number" id="tp-grade" class="input-field" min="0" max="20" step="0.25"
+                  placeholder="0-20" />
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <span>➕</span>
+              Ajouter la matière
+            </button>
+          </form>
+        </section>
+
+        <!-- Subjects List -->
+        <section class="subjects-list-section">
+          <div class="section-header">
+            <h2>Matières ajoutées</h2>
+            <div class="action-buttons">
+              <button id="save-btn" class="btn btn-secondary">
+                <span>💾</span>
+                Sauvegarder
+              </button>
+              <button id="load-btn" class="btn btn-secondary">
+                <span>📂</span>
+                Charger
+              </button>
+            </div>
+          </div>
+          <div id="subjects-container" class="subjects-container">
+            <div class="empty-state">
+              <p>Aucune matière ajoutée pour ce semestre</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="results-section" class="results-section glass-card" style="display: none;">
+          <h2>Résultats</h2>
+          <div class="results-grid">
+            <div class="result-card">
+              <div class="result-label">Moyenne du semestre</div>
+              <div class="result-value" id="semester-avg">--</div>
+            </div>
+            <div class="result-card">
+              <div class="result-label">Moyenne annuelle</div>
+              <div class="result-value" id="year-avg">--</div>
+            </div>
+            <div class="result-card">
+              <div class="result-label">Statut</div>
+              <div class="result-status" id="status">--</div>
+            </div>
+          </div>
+          <button id="share-btn" class="btn btn-accent">
+            <span>🔗</span>
+            Partager mes résultats
+          </button>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>© 2026 M3DL - Calculateur pour universités algériennes</p>
+        <p>Designed by Ryuu</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Hidden file input for loading -->
+  <input type="file" id="file-input" accept=".json" style="display: none;" />
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
