@@ -6,6 +6,7 @@
 import { Calculator } from './calculator.js';
 import { Storage } from './storage.js';
 import { Share } from './share.js';
+import { DEFAULT_SUBJECTS } from './data.js';
 
 export class UI {
     constructor() {
@@ -16,6 +17,10 @@ export class UI {
         this.data = null;
         this.currentYear = 1;
         this.currentSemester = 1;
+
+        // Edit mode state
+        this.isEditing = false;
+        this.editingId = null;
 
         this.init();
     }
@@ -29,6 +34,9 @@ export class UI {
 
         // Render initial state
         this.updateUI();
+
+        // Initial form state
+        this.updateFormVisibility('both'); // Default
     }
 
     loadData() {
@@ -61,6 +69,9 @@ export class UI {
             this.currentYear = parseInt(e.target.value);
             this.updateUI();
             this.saveData();
+            // Clear suggestions on year change
+            const list = document.getElementById('suggestions-list');
+            if (list) list.classList.remove('active');
         });
 
         // Semester buttons
@@ -76,6 +87,9 @@ export class UI {
 
                 this.updateUI();
                 this.saveData();
+                // Clear suggestions on semester change
+                const list = document.getElementById('suggestions-list');
+                if (list) list.classList.remove('active');
             });
         });
 
@@ -83,7 +97,34 @@ export class UI {
         const subjectForm = document.getElementById('subject-form');
         subjectForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            this.addSubject();
+            this.handleFormSubmit();
+        });
+
+        // Cancel edit button
+        const cancelBtn = document.getElementById('cancel-edit-btn');
+        cancelBtn.addEventListener('click', () => {
+            this.resetForm();
+        });
+
+        // Subject name input (Custom Autocomplete)
+        const nameInput = document.getElementById('subject-name');
+
+        nameInput.addEventListener('input', (e) => {
+            this.handleSubjectInput(e.target.value);
+        });
+
+        nameInput.addEventListener('focus', () => {
+            this.handleSubjectInput(nameInput.value);
+        });
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            const wrapper = document.querySelector('.autocomplete-wrapper');
+            const list = document.getElementById('suggestions-list');
+            // If click is outside wrapper and list is active
+            if (wrapper && !wrapper.contains(e.target) && list && list.classList.contains('active')) {
+                list.classList.remove('active');
+            }
         });
 
         // TD/TP type radio buttons
@@ -119,27 +160,161 @@ export class UI {
         });
     }
 
+    handleSubjectInput(value) {
+        const list = document.getElementById('suggestions-list');
+        if (!list) return;
+
+        if (!DEFAULT_SUBJECTS[this.currentYear] || !DEFAULT_SUBJECTS[this.currentYear][`s${this.currentSemester}`]) {
+            list.innerHTML = '';
+            list.classList.remove('active');
+            return;
+        }
+
+        const subjects = DEFAULT_SUBJECTS[this.currentYear][`s${this.currentSemester}`];
+        const filtered = value
+            ? subjects.filter(s => s.name.toLowerCase().includes(value.toLowerCase()))
+            : subjects;
+
+        if (filtered.length === 0) {
+            list.classList.remove('active');
+            return;
+        }
+
+        this.renderSuggestions(filtered);
+    }
+
+    renderSuggestions(subjects) {
+        const list = document.getElementById('suggestions-list');
+        list.innerHTML = '';
+
+        subjects.forEach(subject => {
+            const li = document.createElement('li');
+            li.className = 'suggestion-item';
+            li.textContent = subject.name;
+            li.addEventListener('click', (e) => {
+                // Stop propagation so the outside click listener doesn't immediately close it
+                e.stopPropagation();
+                this.selectSuggestion(subject);
+            });
+            list.appendChild(li);
+        });
+
+        list.classList.add('active');
+    }
+
+    selectSuggestion(subject) {
+        document.getElementById('subject-name').value = subject.name;
+        document.getElementById('subject-coef').value = subject.coefficient;
+
+        if (subject.tpType) {
+            const radio = document.querySelector(`input[name="tp-type"][value="${subject.tpType}"]`);
+            if (radio) {
+                radio.checked = true;
+                this.updateFormVisibility(subject.tpType);
+            }
+        }
+
+        const list = document.getElementById('suggestions-list');
+        if (list) list.classList.remove('active');
+    }
+
     updateFormVisibility(tpType) {
         const tdGroup = document.getElementById('td-group');
         const tpGroup = document.getElementById('tp-group');
+        const examLabel = document.getElementById('exam-label');
+        const tdLabel = document.querySelector('label[for="td-grade"]');
+        const tpLabel = document.querySelector('label[for="tp-grade"]');
+
+        // Reset display
+        tdGroup.style.display = 'flex';
+        tpGroup.style.display = 'flex';
 
         switch (tpType) {
             case 'both':
-                tdGroup.style.display = 'flex';
-                tpGroup.style.display = 'flex';
+                examLabel.textContent = 'Note Examen (60%)';
+                tdLabel.textContent = 'Note TD (20%)';
+                tpLabel.textContent = 'Note TP (20%)';
                 break;
             case 'td':
-                tdGroup.style.display = 'flex';
                 tpGroup.style.display = 'none';
+                examLabel.textContent = 'Note Examen (60%)';
+                tdLabel.textContent = 'Note TD (40%)';
                 break;
             case 'tp':
                 tdGroup.style.display = 'none';
-                tpGroup.style.display = 'flex';
+                examLabel.textContent = 'Note Examen (60%)';
+                tpLabel.textContent = 'Note TP (40%)';
+                break;
+            case 'exam':
+                tdGroup.style.display = 'none';
+                tpGroup.style.display = 'none';
+                examLabel.textContent = 'Note Examen (100%)';
                 break;
         }
     }
 
+    handleFormSubmit() {
+        if (this.isEditing) {
+            this.updateSubject();
+        } else {
+            this.addSubject();
+        }
+    }
+
+    resetForm() {
+        document.getElementById('subject-form').reset();
+        this.isEditing = false;
+        this.editingId = null;
+
+        // Reset UI elements
+        document.getElementById('submit-btn-text').textContent = 'Ajouter la matière';
+        document.querySelector('#submit-btn span').textContent = '➕';
+        document.getElementById('cancel-edit-btn').style.display = 'none';
+
+        // Reset type to default
+        document.querySelector('input[name="tp-type"][value="both"]').checked = true;
+        this.updateFormVisibility('both');
+    }
+
     addSubject() {
+        const subject = this.getSubjectFromForm();
+        if (!subject) return;
+
+        subject.id = Date.now();
+
+        // Add to current semester
+        const semesterKey = `s${this.currentSemester}`;
+        this.data.years[this.currentYear][semesterKey].push(subject);
+
+        this.resetForm();
+        this.updateUI();
+        this.saveData();
+
+        this.share.showNotification('✓ Matière ajoutée avec succès!', 'success');
+    }
+
+    updateSubject() {
+        const subject = this.getSubjectFromForm();
+        if (!subject) return;
+
+        subject.id = this.editingId;
+
+        const semesterKey = `s${this.currentSemester}`;
+        const subjects = this.data.years[this.currentYear][semesterKey];
+        const index = subjects.findIndex(s => s.id === this.editingId);
+
+        if (index !== -1) {
+            subjects[index] = subject;
+
+            this.resetForm();
+            this.updateUI();
+            this.saveData();
+
+            this.share.showNotification('✓ Matière modifiée avec succès!', 'success');
+        }
+    }
+
+    getSubjectFromForm() {
         const name = document.getElementById('subject-name').value.trim();
         const coefficient = parseFloat(document.getElementById('subject-coef').value);
         const exam = parseFloat(document.getElementById('exam-grade').value) || 0;
@@ -149,53 +324,74 @@ export class UI {
 
         if (!name) {
             this.share.showNotification('Veuillez entrer le nom de la matière', 'error');
-            return;
+            return null;
         }
 
         if (!this.calculator.isValidCoefficient(coefficient)) {
             this.share.showNotification('Coefficient invalide (1-10)', 'error');
-            return;
+            return null;
         }
 
-        const subject = {
-            id: Date.now(),
-            name,
-            coefficient,
-            exam,
-            td,
-            tp,
-            tpType
-        };
+        return { name, coefficient, exam, td, tp, tpType };
+    }
 
-        // Add to current semester
+    editSubject(subjectId) {
         const semesterKey = `s${this.currentSemester}`;
-        this.data.years[this.currentYear][semesterKey].push(subject);
+        const subjects = this.data.years[this.currentYear][semesterKey];
+        const subject = subjects.find(s => s.id === subjectId);
 
-        // Reset form
-        document.getElementById('subject-form').reset();
+        if (!subject) return;
 
-        // Update UI
-        this.updateUI();
-        this.saveData();
+        // Enter edit mode
+        this.isEditing = true;
+        this.editingId = subjectId;
 
-        this.share.showNotification('✓ Matière ajoutée avec succès!', 'success');
+        // Populate form
+        document.getElementById('subject-name').value = subject.name;
+        document.getElementById('subject-coef').value = subject.coefficient;
+        document.getElementById('exam-grade').value = subject.exam || '';
+        document.getElementById('td-grade').value = subject.td || '';
+        document.getElementById('tp-grade').value = subject.tp || '';
+
+        // Select Radio
+        const radio = document.querySelector(`input[name="tp-type"][value="${subject.tpType || 'both'}"]`);
+        if (radio) {
+            radio.checked = true;
+            this.updateFormVisibility(subject.tpType || 'both');
+        }
+
+        // Change button text
+        document.getElementById('submit-btn-text').textContent = 'Modifier';
+        document.querySelector('#submit-btn span').textContent = '✏️';
+        document.getElementById('cancel-edit-btn').style.display = 'inline-flex';
+
+        // Scroll to form
+        document.querySelector('.subject-section').scrollIntoView({ behavior: 'smooth' });
     }
 
     deleteSubject(subjectId) {
-        const semesterKey = `s${this.currentSemester}`;
-        const subjects = this.data.years[this.currentYear][semesterKey];
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette matière ?')) {
+            const semesterKey = `s${this.currentSemester}`;
+            const subjects = this.data.years[this.currentYear][semesterKey];
 
-        const index = subjects.findIndex(s => s.id === subjectId);
-        if (index !== -1) {
-            subjects.splice(index, 1);
-            this.updateUI();
-            this.saveData();
-            this.share.showNotification('✓ Matière supprimée', 'success');
+            const index = subjects.findIndex(s => s.id === subjectId);
+            if (index !== -1) {
+                subjects.splice(index, 1);
+                this.updateUI();
+                this.saveData();
+                this.share.showNotification('✓ Matière supprimée', 'success');
+
+                // If we were editing this subject, cancel edit
+                if (this.isEditing && this.editingId === subjectId) {
+                    this.resetForm();
+                }
+            }
         }
     }
 
     updateUI() {
         this.updateSemesterLabels();
+        this.updateSuggestions();
         this.renderSubjects();
         this.renderResults();
     }
@@ -225,6 +421,30 @@ export class UI {
         container.innerHTML = subjects.map(subject => {
             const grade = this.calculator.calculateSubjectGrade(subject);
 
+            let detailsHtml = `
+                    <div class="grade-item">
+                        <div class="grade-label">Examen (${subject.tpType === 'exam' ? '100' : '60'}%)</div>
+                         <div class="grade-value">${subject.exam.toFixed(2)}</div>
+                     </div>`;
+
+            if (subject.tpType === 'both' || subject.tpType === 'td') {
+                const perc = subject.tpType === 'both' ? '20' : '40';
+                detailsHtml += `
+                    <div class="grade-item">
+                        <div class="grade-label">TD (${perc}%)</div>
+                         <div class="grade-value">${(subject.td || 0).toFixed(2)}</div>
+                     </div>`;
+            }
+
+            if (subject.tpType === 'both' || subject.tpType === 'tp') {
+                const perc = subject.tpType === 'both' ? '20' : '40';
+                detailsHtml += `
+                    <div class="grade-item">
+                        <div class="grade-label">TP (${perc}%)</div>
+                         <div class="grade-value">${(subject.tp || 0).toFixed(2)}</div>
+                     </div>`;
+            }
+
             return `
         <div class="subject-card">
           <div class="subject-header">
@@ -233,22 +453,7 @@ export class UI {
           </div>
           
           <div class="subject-grades">
-            <div class="grade-item">
-              <div class="grade-label">Examen (60%)</div>
-              <div class="grade-value">${subject.exam.toFixed(2)}</div>
-            </div>
-            ${subject.tpType === 'both' || subject.tpType === 'td' ? `
-              <div class="grade-item">
-                <div class="grade-label">TD (${subject.tpType === 'both' ? '20%' : '40%'})</div>
-                <div class="grade-value">${subject.td.toFixed(2)}</div>
-              </div>
-            ` : ''}
-            ${subject.tpType === 'both' || subject.tpType === 'tp' ? `
-              <div class="grade-item">
-                <div class="grade-label">TP (${subject.tpType === 'both' ? '20%' : '40%'})</div>
-                <div class="grade-value">${subject.tp.toFixed(2)}</div>
-              </div>
-            ` : ''}
+            ${detailsHtml}
           </div>
           
           <div class="subject-average">
@@ -257,6 +462,9 @@ export class UI {
           </div>
           
           <div class="subject-actions">
+            <button class="btn-icon edit" onclick="window.ui.editSubject(${subject.id})" title="Modifier">
+              ✏️
+            </button>
             <button class="btn-icon delete" onclick="window.ui.deleteSubject(${subject.id})" title="Supprimer">
               🗑️
             </button>
@@ -310,7 +518,7 @@ export class UI {
     }
 
     exportData() {
-        const filename = `m3dl_annee${this.currentYear}_${new Date().toISOString().split('T')[0]}.json`;
+        const filename = `m3dl_byryuu_annee${this.currentYear}_${new Date().toISOString().split('T')[0]}.json`;
         const success = this.storage.exportToJSON(this.data, filename);
 
         if (success) {

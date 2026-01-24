@@ -8,7 +8,7 @@
   <meta name="description"
     content="Calculateur de moyenne pour étudiants universitaires algériens - Calculez vos notes de semestre et d'année" />
   <meta name="keywords" content="calculateur moyenne, université algérienne, notes, semestre, TD, TP" />
-  <title>M3DL - Calculateur de Moyenne Universitaire</title>
+  <title>M3DL by Ryuu - Calculateur de Moyenne Universitaire</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -23,7 +23,7 @@
       <div class="container">
         <h1 class="logo">
           <span class="logo-icon">📊</span>
-          M3DL
+          M3DL by Ryuu
         </h1>
         <p class="tagline">Calculateur de Moyenne Universitaire</p>
       </div>
@@ -56,10 +56,15 @@
         <section class="subject-section glass-card">
           <h2>Ajouter une matière</h2>
           <form id="subject-form" class="subject-form">
+            <input type="hidden" id="edit-id" value="">
             <div class="form-row">
               <div class="form-group">
                 <label for="subject-name">Nom de la matière</label>
-                <input type="text" id="subject-name" class="input-field" placeholder="Ex: Algorithmique" required />
+                <div class="autocomplete-wrapper">
+                  <input type="text" id="subject-name" class="input-field" placeholder="Ex: Algorithmique"
+                    autocomplete="off" required />
+                  <ul id="suggestions-list" class="suggestions-list"></ul>
+                </div>
               </div>
               <div class="form-group">
                 <label for="subject-coef">Coefficient</label>
@@ -84,13 +89,17 @@
                     <input type="radio" name="tp-type" value="tp" />
                     <span>TP seulement</span>
                   </label>
+                  <label class="radio-label">
+                    <input type="radio" name="tp-type" value="exam" />
+                    <span>Examen seulement</span>
+                  </label>
                 </div>
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label for="exam-grade">Note Examen (60%)</label>
+                <label for="exam-grade" id="exam-label">Note Examen (60%)</label>
                 <input type="number" id="exam-grade" class="input-field" min="0" max="20" step="0.25"
                   placeholder="0-20" />
               </div>
@@ -106,10 +115,15 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">
-              <span>➕</span>
-              Ajouter la matière
-            </button>
+            <div class="action-buttons-form">
+              <button type="submit" id="submit-btn" class="btn btn-primary">
+                <span>➕</span>
+                <span id="submit-btn-text">Ajouter la matière</span>
+              </button>
+              <button type="button" id="cancel-edit-btn" class="btn btn-secondary" style="display: none;">
+                Annuler
+              </button>
+            </div>
           </form>
         </section>
 

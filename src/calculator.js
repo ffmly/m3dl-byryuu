@@ -44,6 +44,12 @@ export class Calculator {
                 // TP only: 40%
                 grade += tpScore * (this.TD_WEIGHT + this.TP_WEIGHT);
                 break;
+
+            case 'exam':
+                // Exam only: 100%
+                // Reset previously added 60% and use 100%
+                grade = examScore * 1.0;
+                break;
         }
 
         return Math.round(grade * 100) / 100; // Round to 2 decimals

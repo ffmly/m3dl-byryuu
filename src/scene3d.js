@@ -77,11 +77,25 @@ export class Scene3D {
     addGeometries() {
         // Create various geometric shapes
         const shapes = [
-            { geometry: new THREE.TorusGeometry(3, 1, 16, 100), position: [-15, 0, -10] },
+            // Center area
+            { geometry: new THREE.TorusGeometry(3, 1, 16, 100), position: [-15, 2, -10] },
             { geometry: new THREE.OctahedronGeometry(3), position: [15, 5, -15] },
-            { geometry: new THREE.IcosahedronGeometry(2.5), position: [-10, -8, -12] },
-            { geometry: new THREE.TetrahedronGeometry(3), position: [12, -5, -18] },
-            { geometry: new THREE.TorusKnotGeometry(2, 0.5, 100, 16), position: [0, 8, -20] }
+            { geometry: new THREE.TorusKnotGeometry(2, 0.5, 100, 16), position: [0, 8, -20] },
+
+            // Left side extensions
+            { geometry: new THREE.IcosahedronGeometry(2.5), position: [-28, -8, -12] },
+            { geometry: new THREE.TetrahedronGeometry(3), position: [-35, 12, -18] },
+            { geometry: new THREE.OctahedronGeometry(2), position: [-22, 15, -15] },
+
+            // Right side extensions
+            { geometry: new THREE.TetrahedronGeometry(3), position: [25, -10, -18] },
+            { geometry: new THREE.TorusGeometry(2, 0.8, 16, 50), position: [32, 10, -15] },
+            { geometry: new THREE.IcosahedronGeometry(2.5), position: [35, -5, -12] },
+
+            // Top and Bottom extensions
+            { geometry: new THREE.OctahedronGeometry(2.5), position: [8, 20, -18] },
+            { geometry: new THREE.TorusGeometry(2.5, 0.6, 16, 50), position: [-8, -15, -14] },
+            { geometry: new THREE.TetrahedronGeometry(2), position: [0, -20, -16] }
         ];
 
         shapes.forEach(({ geometry, position }) => {
