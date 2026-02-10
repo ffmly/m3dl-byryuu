@@ -391,7 +391,6 @@ export class UI {
 
     updateUI() {
         this.updateSemesterLabels();
-        this.updateSuggestions();
         this.renderSubjects();
         this.renderResults();
     }
