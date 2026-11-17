@@ -25,17 +25,17 @@ npm run preview
 
 Le résultat de production du site principal est généré dans `dist/`.
 
-## Modifier la pondération 60% / 40%
+## Modifier la pondération 60% / 40% d'une matière
 
-Dans le site, utilisez la section **Pondération des notes**. Vous pouvez modifier le pourcentage de l'examen ou du contrôle continu. L'autre valeur est ajustée automatiquement afin que le total reste toujours égal à 100%.
+La pondération se règle séparément pour chaque matière dans le formulaire **Ajouter une matière**. Vous pouvez modifier le pourcentage de l'examen ou du contrôle continu avant d'ajouter la matière. L'autre valeur est ajustée automatiquement afin que le total reste toujours égal à 100%.
 
 - Avec **TD + TP**, la part du contrôle continu est divisée également entre TD et TP.
 - Avec **TD seulement** ou **TP seulement**, toute la part du contrôle continu est utilisée.
 - Avec **Examen seulement**, la note d'examen compte pour 100%.
 
-La valeur choisie est sauvegardée dans le navigateur avec les autres données.
+Chaque matière sauvegarde sa propre pondération. Lorsqu'une matière est modifiée, sa répartition est rechargée dans le formulaire.
 
-Pour changer la valeur par défaut dans le code, modifiez `examWeight: 60` dans `src/storage.js`.
+La valeur utilisée par défaut pour une nouvelle matière est 60% examen / 40% contrôle continu.
 
 ## Version simple sans 3D
 

@@ -23,38 +23,10 @@
         <p>Ajoutez vos matières, choisissez les coefficients et adaptez la pondération examen / contrôle continu.</p>
       </section>
 
-      <section class="panel" aria-labelledby="weights-title">
-        <div class="section-title">
-          <div>
-            <p class="step">01</p>
-            <h2 id="weights-title">Pondération</h2>
-          </div>
-          <span class="total-pill">Total 100%</span>
-        </div>
-
-        <div class="weights-grid">
-          <label>
-            Examen
-            <span class="number-field"><input id="exam-weight" type="number" min="0" max="100" value="60" /><span>%</span></span>
-          </label>
-
-          <div class="split-preview" aria-label="Répartition de la pondération">
-            <div id="exam-bar">60%</div>
-            <div id="continuous-bar">40%</div>
-          </div>
-
-          <label>
-            Contrôle continu
-            <span class="number-field"><input id="continuous-weight" type="number" min="0" max="100" value="40" /><span>%</span></span>
-          </label>
-        </div>
-        <p class="hint">Si vous utilisez TD + TP, la partie contrôle continu est divisée également.</p>
-      </section>
-
       <section class="panel" aria-labelledby="subject-title">
         <div class="section-title">
           <div>
-            <p class="step">02</p>
+            <p class="step">01</p>
             <h2 id="subject-title">Ajouter une matière</h2>
           </div>
         </div>
@@ -80,6 +52,30 @@
             </label>
           </div>
 
+          <fieldset class="module-weights">
+            <legend>Pondération de cette matière</legend>
+            <div class="module-weights-heading">
+              <p class="hint">Chaque matière garde sa propre répartition examen / contrôle continu.</p>
+              <span class="total-pill">Total 100%</span>
+            </div>
+            <div class="weights-grid">
+              <label>
+                Examen
+                <span class="number-field"><input id="exam-weight" type="number" min="0" max="100" value="60" /><span>%</span></span>
+              </label>
+
+              <div class="split-preview" aria-label="Répartition de la pondération">
+                <div id="exam-bar">60%</div>
+                <div id="continuous-bar">40%</div>
+              </div>
+
+              <label>
+                Contrôle continu
+                <span class="number-field"><input id="continuous-weight" type="number" min="0" max="100" value="40" /><span>%</span></span>
+              </label>
+            </div>
+          </fieldset>
+
           <div class="form-grid grades-grid">
             <label>
               <span id="exam-label">Examen (60%)</span>
@@ -102,7 +98,7 @@
       <section class="panel" aria-labelledby="results-title">
         <div class="section-title results-heading">
           <div>
-            <p class="step">03</p>
+            <p class="step">02</p>
             <h2 id="results-title">Mes matières</h2>
           </div>
           <div class="average">

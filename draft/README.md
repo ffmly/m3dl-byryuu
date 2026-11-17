@@ -22,15 +22,9 @@ Cette méthode ne demande aucune installation npm ni aucune compilation.
 
 ## Modifier 60% / 40%
 
-Utilisez les deux champs de la section **Pondération**. Modifier une valeur ajuste automatiquement l'autre pour garder un total de 100%.
+La pondération se trouve dans le formulaire **Ajouter une matière**. Choisissez la répartition souhaitée avant d'ajouter la matière. Modifier une valeur ajuste automatiquement l'autre pour garder un total de 100%.
 
-La valeur est sauvegardée dans le navigateur. La valeur par défaut est définie ici dans `app.js` :
-
-```js
-return { examWeight: 60, subjects: [] };
-```
-
-Remplacez `60` par exemple par `70` pour démarrer avec 70% examen et 30% contrôle continu.
+Chaque matière sauvegarde sa propre répartition. Une matière peut donc utiliser 60/40 et une autre 70/30. Une nouvelle matière commence par défaut à 60/40.
 
 ## Fichiers
 

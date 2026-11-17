@@ -30,7 +30,6 @@ export class UI {
         this.loadData();
 
         // Initialize event listeners
-        this.calculator.setWeights(this.data.settings.examWeight);
         this.initEventListeners();
 
         // Render initial state
@@ -158,16 +157,16 @@ export class UI {
         const examWeightInput = document.getElementById('exam-weight');
         const continuousWeightInput = document.getElementById('continuous-weight');
 
-        examWeightInput.value = this.data.settings.examWeight;
-        continuousWeightInput.value = 100 - this.data.settings.examWeight;
-        this.updateWeightDisplay(this.data.settings.examWeight);
+        this.updateWeightDisplay(60);
 
         examWeightInput.addEventListener('input', () => {
-            this.updateWeights(examWeightInput.value);
+            this.updateWeightDisplay(examWeightInput.value);
+            this.updateFormVisibility(document.querySelector('input[name="tp-type"]:checked').value);
         });
 
         continuousWeightInput.addEventListener('input', () => {
-            this.updateWeights(100 - this.clampPercentage(continuousWeightInput.value));
+            this.updateWeightDisplay(100 - this.clampPercentage(continuousWeightInput.value));
+            this.updateFormVisibility(document.querySelector('input[name="tp-type"]:checked').value);
         });
 
         // Share button
@@ -183,29 +182,17 @@ export class UI {
         return Math.min(100, Math.max(0, Math.round(number)));
     }
 
-    updateWeights(examPercent) {
-        const safeExamPercent = this.clampPercentage(examPercent);
-        this.data.settings.examWeight = safeExamPercent;
-        this.calculator.setWeights(safeExamPercent);
-        this.updateWeightDisplay(safeExamPercent);
-
-        const selectedType = document.querySelector('input[name="tp-type"]:checked')?.value || 'both';
-        this.updateFormVisibility(selectedType);
-        this.renderSubjects();
-        this.renderResults();
-        this.saveData();
-    }
-
     updateWeightDisplay(examPercent) {
-        const continuousPercent = 100 - examPercent;
-        document.getElementById('exam-weight').value = examPercent;
+        const safeExamPercent = this.clampPercentage(examPercent);
+        const continuousPercent = 100 - safeExamPercent;
+        document.getElementById('exam-weight').value = safeExamPercent;
         document.getElementById('continuous-weight').value = continuousPercent;
-        document.getElementById('exam-weight-bar').style.width = `${examPercent}%`;
+        document.getElementById('exam-weight-bar').style.width = `${safeExamPercent}%`;
         document.getElementById('continuous-weight-bar').style.width = `${continuousPercent}%`;
     }
 
-    getWeightPercentages(tpType) {
-        const exam = this.data.settings.examWeight;
+    getWeightPercentages(tpType, examWeight = 60) {
+        const exam = this.clampPercentage(examWeight);
         const continuous = 100 - exam;
         return {
             exam: tpType === 'exam' ? 100 : exam,
@@ -287,7 +274,10 @@ export class UI {
         tdGroup.style.display = 'flex';
         tpGroup.style.display = 'flex';
 
-        const weights = this.getWeightPercentages(tpType);
+        const weights = this.getWeightPercentages(
+            tpType,
+            document.getElementById('exam-weight').value
+        );
 
         switch (tpType) {
             case 'both':
@@ -333,6 +323,7 @@ export class UI {
 
         // Reset type to default
         document.querySelector('input[name="tp-type"][value="both"]').checked = true;
+        this.updateWeightDisplay(60);
         this.updateFormVisibility('both');
     }
 
@@ -381,6 +372,7 @@ export class UI {
         const td = parseFloat(document.getElementById('td-grade').value) || 0;
         const tp = parseFloat(document.getElementById('tp-grade').value) || 0;
         const tpType = document.querySelector('input[name="tp-type"]:checked').value;
+        const examWeight = this.clampPercentage(document.getElementById('exam-weight').value);
 
         if (!name) {
             this.share.showNotification('Veuillez entrer le nom de la matière', 'error');
@@ -392,7 +384,7 @@ export class UI {
             return null;
         }
 
-        return { name, coefficient, exam, td, tp, tpType };
+        return { name, coefficient, exam, td, tp, tpType, examWeight };
     }
 
     editSubject(subjectId) {
@@ -412,6 +404,7 @@ export class UI {
         document.getElementById('exam-grade').value = subject.exam || '';
         document.getElementById('td-grade').value = subject.td || '';
         document.getElementById('tp-grade').value = subject.tp || '';
+        this.updateWeightDisplay(subject.examWeight ?? 60);
 
         // Select Radio
         const radio = document.querySelector(`input[name="tp-type"][value="${subject.tpType || 'both'}"]`);
@@ -479,7 +472,7 @@ export class UI {
 
         container.innerHTML = subjects.map(subject => {
             const grade = this.calculator.calculateSubjectGrade(subject);
-            const weights = this.getWeightPercentages(subject.tpType);
+            const weights = this.getWeightPercentages(subject.tpType, subject.examWeight);
 
             let detailsHtml = `
                     <div class="grade-item">
@@ -596,13 +589,11 @@ export class UI {
             }
 
             this.data = this.storage.migrateData(data);
-            this.calculator.setWeights(this.data.settings.examWeight);
             this.currentYear = data.currentYear || 1;
             this.currentSemester = data.currentSemester || 1;
 
             // Update year selector
             document.getElementById('year-select').value = this.currentYear;
-            this.updateWeightDisplay(this.data.settings.examWeight);
 
             // Update semester buttons
             document.querySelectorAll('.btn-semester').forEach(btn => {

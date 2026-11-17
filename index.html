@@ -51,38 +51,6 @@
           </div>
         </section>
 
-        <!-- Grade Weight Settings -->
-        <section class="weight-section glass-card" aria-labelledby="weight-title">
-          <div class="weight-heading">
-            <div>
-              <h2 id="weight-title">Pondération des notes</h2>
-              <p>Modifiez le partage entre l'examen et le contrôle continu.</p>
-            </div>
-            <span class="weight-total">Total : 100%</span>
-          </div>
-          <div class="weight-controls">
-            <label class="weight-control" for="exam-weight">
-              <span>Examen</span>
-              <span class="weight-input-wrap">
-                <input id="exam-weight" type="number" min="0" max="100" step="1" value="60" />
-                <span>%</span>
-              </span>
-            </label>
-            <div class="weight-bar" aria-hidden="true">
-              <span id="exam-weight-bar"></span>
-              <span id="continuous-weight-bar"></span>
-            </div>
-            <label class="weight-control" for="continuous-weight">
-              <span>Contrôle continu</span>
-              <span class="weight-input-wrap">
-                <input id="continuous-weight" type="number" min="0" max="100" step="1" value="40" />
-                <span>%</span>
-              </span>
-            </label>
-          </div>
-          <p class="weight-note">Avec TD + TP, la part du contrôle continu est divisée également entre les deux.</p>
-        </section>
-
         <!-- Subject Input Section -->
         <section class="subject-section glass-card">
           <h2>Ajouter une matière</h2>
@@ -103,6 +71,35 @@
                   required />
               </div>
             </div>
+
+            <fieldset class="module-weight-settings">
+              <legend>Pondération de cette matière</legend>
+              <div class="weight-heading">
+                <p>Chaque matière peut utiliser une répartition différente.</p>
+                <span class="weight-total">Total : 100%</span>
+              </div>
+              <div class="weight-controls">
+                <label class="weight-control" for="exam-weight">
+                  <span>Examen</span>
+                  <span class="weight-input-wrap">
+                    <input id="exam-weight" type="number" min="0" max="100" step="1" value="60" />
+                    <span>%</span>
+                  </span>
+                </label>
+                <div class="weight-bar" aria-hidden="true">
+                  <span id="exam-weight-bar"></span>
+                  <span id="continuous-weight-bar"></span>
+                </div>
+                <label class="weight-control" for="continuous-weight">
+                  <span>Contrôle continu</span>
+                  <span class="weight-input-wrap">
+                    <input id="continuous-weight" type="number" min="0" max="100" step="1" value="40" />
+                    <span>%</span>
+                  </span>
+                </label>
+              </div>
+              <p class="weight-note">Avec TD + TP, la part du contrôle continu est divisée également entre les deux.</p>
+            </fieldset>
 
             <div class="form-row">
               <div class="form-group">

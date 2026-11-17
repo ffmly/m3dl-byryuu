@@ -130,8 +130,7 @@ export class Storage {
             },
             settings: {
                 passingGrade: 10,
-                autoSave: true,
-                examWeight: 60
+                autoSave: true
             },
             lastModified: new Date().toISOString()
         };
@@ -171,14 +170,26 @@ export class Storage {
         if (!migrated.settings) {
             migrated.settings = {
                 passingGrade: 10,
-                autoSave: true,
-                examWeight: 60
+                autoSave: true
             };
         }
 
-        if (typeof migrated.settings.examWeight !== 'number') {
-            migrated.settings.examWeight = 60;
+        const previousGlobalWeight = typeof migrated.settings.examWeight === 'number'
+            ? migrated.settings.examWeight
+            : 60;
+
+        for (let year = 1; year <= 5; year++) {
+            ['s1', 's2'].forEach(semester => {
+                migrated.years[year][semester] = migrated.years[year][semester].map(subject => ({
+                    ...subject,
+                    examWeight: typeof subject.examWeight === 'number'
+                        ? subject.examWeight
+                        : previousGlobalWeight
+                }));
+            });
         }
+
+        delete migrated.settings.examWeight;
 
         if (!migrated.lastModified) {
             migrated.lastModified = new Date().toISOString();

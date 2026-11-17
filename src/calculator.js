@@ -5,19 +5,7 @@
 
 export class Calculator {
     constructor() {
-        this.EXAM_WEIGHT = 0.6;  // 60%
-        this.CONTINUOUS_WEIGHT = 0.4; // 40%
         this.PASSING_GRADE = 10; // Default passing grade
-    }
-
-    /**
-     * Change the exam/continuous-assessment split.
-     * @param {number} examPercent - Exam percentage from 0 to 100
-     */
-    setWeights(examPercent = 60) {
-        const safeExamPercent = Math.min(100, Math.max(0, Number(examPercent) || 0));
-        this.EXAM_WEIGHT = safeExamPercent / 100;
-        this.CONTINUOUS_WEIGHT = 1 - this.EXAM_WEIGHT;
     }
 
     /**
@@ -32,26 +20,31 @@ export class Calculator {
         let examScore = parseFloat(exam) || 0;
         let tdScore = parseFloat(td) || 0;
         let tpScore = parseFloat(tp) || 0;
+        const requestedExamPercent = Number(subject.examWeight ?? 60);
+        const examPercent = Number.isFinite(requestedExamPercent)
+            ? Math.min(100, Math.max(0, requestedExamPercent))
+            : 60;
+        const examWeight = examPercent / 100;
+        const continuousWeight = 1 - examWeight;
 
-        // Exam is always 60%
-        grade += examScore * this.EXAM_WEIGHT;
+        grade += examScore * examWeight;
 
         // Handle different TD/TP configurations
         switch (tpType) {
             case 'both':
                 // Both TD and TP: share the continuous-assessment weight equally
-                grade += tdScore * (this.CONTINUOUS_WEIGHT / 2);
-                grade += tpScore * (this.CONTINUOUS_WEIGHT / 2);
+                grade += tdScore * (continuousWeight / 2);
+                grade += tpScore * (continuousWeight / 2);
                 break;
 
             case 'td':
                 // TD only: use the full continuous-assessment weight
-                grade += tdScore * this.CONTINUOUS_WEIGHT;
+                grade += tdScore * continuousWeight;
                 break;
 
             case 'tp':
                 // TP only: use the full continuous-assessment weight
-                grade += tpScore * this.CONTINUOUS_WEIGHT;
+                grade += tpScore * continuousWeight;
                 break;
 
             case 'exam':

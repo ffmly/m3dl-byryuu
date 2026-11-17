@@ -15,15 +15,19 @@
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey));
       if (saved && Array.isArray(saved.subjects)) {
+        const previousGlobalWeight = clamp(saved.examWeight ?? 60);
         return {
-          examWeight: clamp(saved.examWeight ?? 60),
-          subjects: saved.subjects
+          subjects: saved.subjects.map(function (subject) {
+            return Object.assign({}, subject, {
+              examWeight: clamp(subject.examWeight ?? previousGlobalWeight)
+            });
+          })
         };
       }
     } catch (error) {
       console.warn('Impossible de charger les données sauvegardées.', error);
     }
-    return { examWeight: 60, subjects: [] };
+    return { subjects: [] };
   }
 
   function saveState() {
@@ -40,26 +44,25 @@
     return Number.isInteger(value) ? String(value) : value.toFixed(1);
   }
 
-  function setWeights(examPercent) {
-    state.examWeight = clamp(examPercent);
-    const continuousPercent = 100 - state.examWeight;
+  function setFormWeights(examPercent) {
+    const safeExamPercent = clamp(examPercent);
+    const continuousPercent = 100 - safeExamPercent;
 
-    examWeightInput.value = state.examWeight;
+    examWeightInput.value = safeExamPercent;
     continuousWeightInput.value = continuousPercent;
-    examBar.style.width = state.examWeight + '%';
+    examBar.style.width = safeExamPercent + '%';
     continuousBar.style.width = continuousPercent + '%';
-    examBar.textContent = state.examWeight + '%';
+    examBar.textContent = safeExamPercent + '%';
     continuousBar.textContent = continuousPercent + '%';
 
     updateGradeFields();
-    renderSubjects();
-    saveState();
   }
 
-  function getWeights(type) {
-    const continuous = 100 - state.examWeight;
+  function getWeights(type, examWeight) {
+    const exam = clamp(examWeight);
+    const continuous = 100 - exam;
     return {
-      exam: type === 'exam' ? 100 : state.examWeight,
+      exam: type === 'exam' ? 100 : exam,
       td: type === 'both' ? continuous / 2 : continuous,
       tp: type === 'both' ? continuous / 2 : continuous
     };
@@ -67,7 +70,7 @@
 
   function updateGradeFields() {
     const type = typeInput.value;
-    const weights = getWeights(type);
+    const weights = getWeights(type, examWeightInput.value);
     const tdField = document.getElementById('td-field');
     const tpField = document.getElementById('tp-field');
 
@@ -79,7 +82,7 @@
   }
 
   function calculateGrade(subject) {
-    const weights = getWeights(subject.type);
+    const weights = getWeights(subject.type, subject.examWeight);
     if (subject.type === 'exam') return subject.exam;
 
     let grade = subject.exam * (weights.exam / 100);
@@ -119,7 +122,7 @@
 
       const weightSummary = document.createElement('div');
       weightSummary.className = 'subject-meta';
-      const weights = getWeights(subject.type);
+      const weights = getWeights(subject.type, subject.examWeight);
       weightSummary.textContent = subject.type === 'exam'
         ? 'Examen 100%'
         : 'Examen ' + formatPercent(weights.exam) + '% · CC ' + formatPercent(100 - weights.exam) + '%';
@@ -152,8 +155,8 @@
     return { both: 'TD + TP', td: 'TD seulement', tp: 'TP seulement', exam: 'Examen seulement' }[type];
   }
 
-  examWeightInput.addEventListener('input', function () { setWeights(examWeightInput.value); });
-  continuousWeightInput.addEventListener('input', function () { setWeights(100 - clamp(continuousWeightInput.value)); });
+  examWeightInput.addEventListener('input', function () { setFormWeights(examWeightInput.value); });
+  continuousWeightInput.addEventListener('input', function () { setFormWeights(100 - clamp(continuousWeightInput.value)); });
   typeInput.addEventListener('change', updateGradeFields);
 
   form.addEventListener('submit', function (event) {
@@ -165,11 +168,12 @@
       type: typeInput.value,
       exam: Number(document.getElementById('exam-grade').value) || 0,
       td: Number(document.getElementById('td-grade').value) || 0,
-      tp: Number(document.getElementById('tp-grade').value) || 0
+      tp: Number(document.getElementById('tp-grade').value) || 0,
+      examWeight: clamp(examWeightInput.value)
     });
     form.reset();
     document.getElementById('subject-coef').value = 1;
-    updateGradeFields();
+    setFormWeights(60);
     saveState();
     renderSubjects();
     document.getElementById('subject-name').focus();
@@ -183,5 +187,6 @@
     }
   });
 
-  setWeights(state.examWeight);
+  setFormWeights(60);
+  renderSubjects();
 })();
