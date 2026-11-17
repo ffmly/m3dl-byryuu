@@ -30,6 +30,7 @@ export class UI {
         this.loadData();
 
         // Initialize event listeners
+        this.calculator.setWeights(this.data.settings.examWeight);
         this.initEventListeners();
 
         // Render initial state
@@ -153,11 +154,68 @@ export class UI {
             this.importData(e.target.files[0]);
         });
 
+        // Exam / continuous-assessment weighting
+        const examWeightInput = document.getElementById('exam-weight');
+        const continuousWeightInput = document.getElementById('continuous-weight');
+
+        examWeightInput.value = this.data.settings.examWeight;
+        continuousWeightInput.value = 100 - this.data.settings.examWeight;
+        this.updateWeightDisplay(this.data.settings.examWeight);
+
+        examWeightInput.addEventListener('input', () => {
+            this.updateWeights(examWeightInput.value);
+        });
+
+        continuousWeightInput.addEventListener('input', () => {
+            this.updateWeights(100 - this.clampPercentage(continuousWeightInput.value));
+        });
+
         // Share button
         const shareBtn = document.getElementById('share-btn');
         shareBtn.addEventListener('click', () => {
             this.shareResults();
         });
+    }
+
+    clampPercentage(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return 0;
+        return Math.min(100, Math.max(0, Math.round(number)));
+    }
+
+    updateWeights(examPercent) {
+        const safeExamPercent = this.clampPercentage(examPercent);
+        this.data.settings.examWeight = safeExamPercent;
+        this.calculator.setWeights(safeExamPercent);
+        this.updateWeightDisplay(safeExamPercent);
+
+        const selectedType = document.querySelector('input[name="tp-type"]:checked')?.value || 'both';
+        this.updateFormVisibility(selectedType);
+        this.renderSubjects();
+        this.renderResults();
+        this.saveData();
+    }
+
+    updateWeightDisplay(examPercent) {
+        const continuousPercent = 100 - examPercent;
+        document.getElementById('exam-weight').value = examPercent;
+        document.getElementById('continuous-weight').value = continuousPercent;
+        document.getElementById('exam-weight-bar').style.width = `${examPercent}%`;
+        document.getElementById('continuous-weight-bar').style.width = `${continuousPercent}%`;
+    }
+
+    getWeightPercentages(tpType) {
+        const exam = this.data.settings.examWeight;
+        const continuous = 100 - exam;
+        return {
+            exam: tpType === 'exam' ? 100 : exam,
+            td: tpType === 'both' ? continuous / 2 : continuous,
+            tp: tpType === 'both' ? continuous / 2 : continuous
+        };
+    }
+
+    formatPercentage(value) {
+        return Number.isInteger(value) ? value : value.toFixed(1);
     }
 
     handleSubjectInput(value) {
@@ -229,21 +287,23 @@ export class UI {
         tdGroup.style.display = 'flex';
         tpGroup.style.display = 'flex';
 
+        const weights = this.getWeightPercentages(tpType);
+
         switch (tpType) {
             case 'both':
-                examLabel.textContent = 'Note Examen (60%)';
-                tdLabel.textContent = 'Note TD (20%)';
-                tpLabel.textContent = 'Note TP (20%)';
+                examLabel.textContent = `Note Examen (${this.formatPercentage(weights.exam)}%)`;
+                tdLabel.textContent = `Note TD (${this.formatPercentage(weights.td)}%)`;
+                tpLabel.textContent = `Note TP (${this.formatPercentage(weights.tp)}%)`;
                 break;
             case 'td':
                 tpGroup.style.display = 'none';
-                examLabel.textContent = 'Note Examen (60%)';
-                tdLabel.textContent = 'Note TD (40%)';
+                examLabel.textContent = `Note Examen (${this.formatPercentage(weights.exam)}%)`;
+                tdLabel.textContent = `Note TD (${this.formatPercentage(weights.td)}%)`;
                 break;
             case 'tp':
                 tdGroup.style.display = 'none';
-                examLabel.textContent = 'Note Examen (60%)';
-                tpLabel.textContent = 'Note TP (40%)';
+                examLabel.textContent = `Note Examen (${this.formatPercentage(weights.exam)}%)`;
+                tpLabel.textContent = `Note TP (${this.formatPercentage(weights.tp)}%)`;
                 break;
             case 'exam':
                 tdGroup.style.display = 'none';
@@ -419,27 +479,26 @@ export class UI {
 
         container.innerHTML = subjects.map(subject => {
             const grade = this.calculator.calculateSubjectGrade(subject);
+            const weights = this.getWeightPercentages(subject.tpType);
 
             let detailsHtml = `
                     <div class="grade-item">
-                        <div class="grade-label">Examen (${subject.tpType === 'exam' ? '100' : '60'}%)</div>
+                        <div class="grade-label">Examen (${this.formatPercentage(weights.exam)}%)</div>
                          <div class="grade-value">${subject.exam.toFixed(2)}</div>
                      </div>`;
 
             if (subject.tpType === 'both' || subject.tpType === 'td') {
-                const perc = subject.tpType === 'both' ? '20' : '40';
                 detailsHtml += `
                     <div class="grade-item">
-                        <div class="grade-label">TD (${perc}%)</div>
+                        <div class="grade-label">TD (${this.formatPercentage(weights.td)}%)</div>
                          <div class="grade-value">${(subject.td || 0).toFixed(2)}</div>
                      </div>`;
             }
 
             if (subject.tpType === 'both' || subject.tpType === 'tp') {
-                const perc = subject.tpType === 'both' ? '20' : '40';
                 detailsHtml += `
                     <div class="grade-item">
-                        <div class="grade-label">TP (${perc}%)</div>
+                        <div class="grade-label">TP (${this.formatPercentage(weights.tp)}%)</div>
                          <div class="grade-value">${(subject.tp || 0).toFixed(2)}</div>
                      </div>`;
             }
@@ -537,11 +596,13 @@ export class UI {
             }
 
             this.data = this.storage.migrateData(data);
+            this.calculator.setWeights(this.data.settings.examWeight);
             this.currentYear = data.currentYear || 1;
             this.currentSemester = data.currentSemester || 1;
 
             // Update year selector
             document.getElementById('year-select').value = this.currentYear;
+            this.updateWeightDisplay(this.data.settings.examWeight);
 
             // Update semester buttons
             document.querySelectorAll('.btn-semester').forEach(btn => {

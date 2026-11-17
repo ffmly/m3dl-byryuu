@@ -6,9 +6,18 @@
 export class Calculator {
     constructor() {
         this.EXAM_WEIGHT = 0.6;  // 60%
-        this.TD_WEIGHT = 0.2;    // 20%
-        this.TP_WEIGHT = 0.2;    // 20%
+        this.CONTINUOUS_WEIGHT = 0.4; // 40%
         this.PASSING_GRADE = 10; // Default passing grade
+    }
+
+    /**
+     * Change the exam/continuous-assessment split.
+     * @param {number} examPercent - Exam percentage from 0 to 100
+     */
+    setWeights(examPercent = 60) {
+        const safeExamPercent = Math.min(100, Math.max(0, Number(examPercent) || 0));
+        this.EXAM_WEIGHT = safeExamPercent / 100;
+        this.CONTINUOUS_WEIGHT = 1 - this.EXAM_WEIGHT;
     }
 
     /**
@@ -30,19 +39,19 @@ export class Calculator {
         // Handle different TD/TP configurations
         switch (tpType) {
             case 'both':
-                // Both TD and TP: each 20%
-                grade += tdScore * this.TD_WEIGHT;
-                grade += tpScore * this.TP_WEIGHT;
+                // Both TD and TP: share the continuous-assessment weight equally
+                grade += tdScore * (this.CONTINUOUS_WEIGHT / 2);
+                grade += tpScore * (this.CONTINUOUS_WEIGHT / 2);
                 break;
 
             case 'td':
-                // TD only: 40%
-                grade += tdScore * (this.TD_WEIGHT + this.TP_WEIGHT);
+                // TD only: use the full continuous-assessment weight
+                grade += tdScore * this.CONTINUOUS_WEIGHT;
                 break;
 
             case 'tp':
-                // TP only: 40%
-                grade += tpScore * (this.TD_WEIGHT + this.TP_WEIGHT);
+                // TP only: use the full continuous-assessment weight
+                grade += tpScore * this.CONTINUOUS_WEIGHT;
                 break;
 
             case 'exam':

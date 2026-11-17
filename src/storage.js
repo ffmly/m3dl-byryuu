@@ -130,7 +130,8 @@ export class Storage {
             },
             settings: {
                 passingGrade: 10,
-                autoSave: true
+                autoSave: true,
+                examWeight: 60
             },
             lastModified: new Date().toISOString()
         };
@@ -170,8 +171,13 @@ export class Storage {
         if (!migrated.settings) {
             migrated.settings = {
                 passingGrade: 10,
-                autoSave: true
+                autoSave: true,
+                examWeight: 60
             };
+        }
+
+        if (typeof migrated.settings.examWeight !== 'number') {
+            migrated.settings.examWeight = 60;
         }
 
         if (!migrated.lastModified) {
