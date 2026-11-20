@@ -41,6 +41,10 @@ La valeur utilisée par défaut pour une nouvelle matière est 60% examen / 40% 
 
 Le dossier `draft/` est un site autonome et séparé du projet Vite principal. Il possède ses propres fichiers et ses propres instructions dans `draft/README.md`.
 
+## Données et sauvegarde
+
+Les deux versions enregistrent les matières dans le stockage local du navigateur, avec des données séparées. Ouvrir la version simple ne transfère pas les matières du site principal. Pour conserver une copie des notes du site principal avant d'effacer les données du navigateur ou de changer d'appareil, utilisez ses boutons de sauvegarde et de chargement de fichier JSON.
+
 ## Scripts
 
 - `npm run dev` — serveur de développement
