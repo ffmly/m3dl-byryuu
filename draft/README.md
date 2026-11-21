@@ -26,6 +26,10 @@ La pondération se trouve dans le formulaire **Ajouter une matière**. Choisisse
 
 Chaque matière sauvegarde sa propre répartition. Une matière peut donc utiliser 60/40 et une autre 70/30. Une nouvelle matière commence par défaut à 60/40.
 
+## Conservation des matières
+
+Les matières de cette version sont enregistrées dans le stockage local du navigateur. Elles restent distinctes de celles du site principal et ne suivent pas automatiquement un changement de navigateur, d'appareil ou d'adresse du site. Effacer les données du navigateur supprime cette sauvegarde locale.
+
 ## Fichiers
 
 - `index.html` — contenu et formulaire
