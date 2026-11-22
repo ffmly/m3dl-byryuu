@@ -37,6 +37,8 @@ Chaque matière sauvegarde sa propre pondération. Lorsqu'une matière est modif
 
 La valeur utilisée par défaut pour une nouvelle matière est 60% examen / 40% contrôle continu.
 
+Exemple avec **TD + TP** : examen 12, TD 14 et TP 16 donnent `12 × 0,60 + 14 × 0,20 + 16 × 0,20 = 13,20`. Les deux notes de contrôle continu reçoivent chacune la moitié des 40%.
+
 ## Version simple sans 3D
 
 Le dossier `draft/` est un site autonome et séparé du projet Vite principal. Il possède ses propres fichiers et ses propres instructions dans `draft/README.md`.
