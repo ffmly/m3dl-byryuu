@@ -37,6 +37,8 @@ Chaque matière sauvegarde sa propre pondération. Lorsqu'une matière est modif
 
 La valeur utilisée par défaut pour une nouvelle matière est 60% examen / 40% contrôle continu.
 
+Une case de note laissée vide est calculée comme 0 dans la moyenne de la matière. Renseignez les notes disponibles avant d'interpréter le résultat affiché.
+
 Exemple avec **TD + TP** : examen 12, TD 14 et TP 16 donnent `12 × 0,60 + 14 × 0,20 + 16 × 0,20 = 13,20`. Les deux notes de contrôle continu reçoivent chacune la moitié des 40%.
 
 La moyenne du semestre tient compte du coefficient de chaque matière : une note de 13 avec coefficient 2 et une note de 11 avec coefficient 1 donnent `(13 × 2 + 11 × 1) / 3 = 12,33`. Lorsque les deux semestres sont renseignés, la moyenne annuelle est leur moyenne simple.
